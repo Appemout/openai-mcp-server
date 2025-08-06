@@ -34,6 +34,45 @@ def serve(openai_api_key: str) -> Server:
                     },
                     "required": ["query"]
                 }
+            ),
+            types.Tool(
+                name="generate-image",
+                description="Generate images using OpenAI DALL-E models",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "prompt": {
+                            "type": "string", 
+                            "description": "Text description for image generation"
+                        },
+                        "model": {
+                            "type": "string", 
+                            "default": "dall-e-3", 
+                            "enum": ["dall-e-2", "dall-e-3"],
+                            "description": "DALL-E model version to use"
+                        },
+                        "size": {
+                            "type": "string", 
+                            "default": "1024x1024", 
+                            "enum": ["256x256", "512x512", "1024x1024", "1024x1792", "1792x1024"],
+                            "description": "Image dimensions"
+                        },
+                        "quality": {
+                            "type": "string", 
+                            "default": "standard", 
+                            "enum": ["standard", "hd"],
+                            "description": "Image quality (only applicable to DALL-E 3)"
+                        },
+                        "n": {
+                            "type": "integer", 
+                            "default": 1, 
+                            "minimum": 1, 
+                            "maximum": 10,
+                            "description": "Number of images to generate (1 for DALL-E 3, 1-10 for DALL-E 2)"
+                        }
+                    },
+                    "required": ["prompt"]
+                }
             )
         ]
 
@@ -51,6 +90,28 @@ def serve(openai_api_key: str) -> Server:
                     max_tokens=arguments.get("max_tokens", 500)
                 )
                 return [types.TextContent(type="text", text=f"OpenAI Response:\n{response}")]
+            
+            elif name == "generate-image":
+                # Extract and validate parameters
+                prompt = arguments.get("prompt")
+                if not prompt:
+                    raise ValueError("Prompt is required for image generation")
+                
+                model = arguments.get("model", "dall-e-3")
+                size = arguments.get("size", "1024x1024")
+                quality = arguments.get("quality", "standard")
+                n = arguments.get("n", 1)
+                
+                # Call the LLMConnector's generate_image method
+                image_url = await connector.generate_image(
+                    prompt=prompt,
+                    model=model,
+                    size=size,
+                    quality=quality,
+                    n=n
+                )
+                
+                return [types.TextContent(type="text", text=f"Generated Image URL:\n{image_url}")]
 
             raise ValueError(f"Unknown tool: {name}")
         except Exception as e:
