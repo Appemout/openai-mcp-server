@@ -25,7 +25,7 @@ Add to `claude_desktop_config.json`:
 
 ## Development
 ```bash
-git clone https://github.com/pierrebrunelle/mcp-server-openai
+git clone https://github.com/Appemout/openai-mcp-server.git
 cd mcp-server-openai
 pip install -e .
 ```
@@ -43,3 +43,4 @@ PASSED
 
 ## License
 MIT License
+
